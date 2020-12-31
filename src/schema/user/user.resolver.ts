@@ -6,8 +6,6 @@ import {
   Resolver,
   Query,
   Ctx,
-  Field,
-  ObjectType,
   UseMiddleware,
 } from 'type-graphql'
 
@@ -15,13 +13,10 @@ import configs from '@/configs'
 import { AppContext } from '@/interfaces/AppContext.interface'
 import { AuthMiddleware } from '@/middlewares/auth.middleware'
 
+import { LoginInput } from './input-types/LoginInput'
+import { RegisterInput } from './input-types/RegisterInput'
+import { LoginResponse } from './object-types/LoginResponse'
 import { User, UserModel } from './user.type'
-
-@ObjectType()
-class LoginResponse {
-  @Field()
-  token: string
-}
 
 @Resolver(() => User)
 class UserResolver {
@@ -35,9 +30,7 @@ class UserResolver {
 
   @Mutation(() => User)
   async Register(
-    @Arg('name') name: string,
-    @Arg('document') document: string,
-    @Arg('password') password: string
+    @Arg('data') { name, document, password }: RegisterInput
   ): Promise<User> {
     const hashedPassword = await hash(password, 10)
 
@@ -54,10 +47,7 @@ class UserResolver {
   }
 
   @Mutation(() => LoginResponse)
-  async Login(
-    @Arg('document') document: string,
-    @Arg('password') password: string
-  ) {
+  async Login(@Arg('login') { document, password }: LoginInput) {
     const user = await UserModel.findOne({ document })
 
     if (!user) {
